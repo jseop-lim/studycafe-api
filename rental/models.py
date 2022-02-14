@@ -16,9 +16,9 @@ class Ticket(models.Model):
     
 
 class Purchase(models.Model):
-    student = models.ForeignKey(Student, primary_key=True, related_name='purchase', on_delete=models.SET_NULL)
-    ticket = models.ForeignKey(Ticket, primary_key=True, related_name='purchase', on_delete=models.SET_NULL)
-    date = models.DateTimeField(primary_key=True, auto_now_add=True)
+    student = models.ForeignKey(Student, related_name='purchase', on_delete=models.CASCADE)
+    ticket = models.ForeignKey(Ticket, related_name='purchase', on_delete=models.CASCADE)
+    date = models.DateTimeField(auto_now_add=True)
     
 
 class Seat(models.Model):
@@ -26,8 +26,8 @@ class Seat(models.Model):
     
 
 class Rent(models.Model):
-    student = models.ForeignKey(Student, primary_key=True, related_name='rent', on_delete=models.SET_NULL)
-    seat = models.ForeignKey(Seat, primary_key=True, related_name='rent', on_delete=models.SET_NULL)
-    start_date = models.DateTimeField(primary_key=True, auto_now_add=True)
+    student = models.ForeignKey(Student, related_name='rent', on_delete=models.CASCADE)
+    seat = models.ForeignKey(Seat, related_name='rent', on_delete=models.CASCADE)
+    start_date = models.DateTimeField(auto_now_add=True)
     real_end_date = models.DateTimeField(blank=True)
     expected_end_date = models.DateTimeField()  # blank=True?
