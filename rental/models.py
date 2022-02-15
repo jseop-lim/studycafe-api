@@ -8,6 +8,9 @@ class Student(models.Model):
     residual_time = models.IntegerField(default=0)
     tickets = models.ManyToManyField('Ticket', through='Purchase', related_name='students')
     seats = models.ManyToManyField('Seat', through='Rent', related_name='students')
+    
+    class Meta:
+        ordering = ['user_id']
 
 
 class Ticket(models.Model):
@@ -15,15 +18,23 @@ class Ticket(models.Model):
     storable = models.BooleanField()
     price = models.IntegerField()
     
+    class Meta:
+        ordering = ['storable', 'time']
+        
 
 class Purchase(models.Model):
     student = models.ForeignKey(Student, related_name='purchases', on_delete=models.CASCADE)
     ticket = models.ForeignKey(Ticket, related_name='purchases', on_delete=models.CASCADE)
     date = models.DateTimeField(auto_now_add=True)
     
+    class Meta:
+        ordering = ['date']
+
 
 class Seat(models.Model):
-    pass
+    
+    class Meta:
+        ordering = ['id']
     
 
 class Rent(models.Model):
@@ -32,3 +43,6 @@ class Rent(models.Model):
     start_date = models.DateTimeField(auto_now_add=True)
     real_end_date = models.DateTimeField(blank=True)
     expected_end_date = models.DateTimeField()  # blank=True?
+    
+    class Meta:
+        ordering = ['start_date']
