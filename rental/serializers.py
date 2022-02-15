@@ -42,4 +42,6 @@ class StudentSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Student
-        fields = ['id', 'name', 'residual_time', 'purchases', 'rents']
+        # fields = ['id', 'name', 'residual_time', 'purchases', 'rents']
+        fields = ['id', 'name', 'residual_time']
+        read_only_fields = ['residual_time']
