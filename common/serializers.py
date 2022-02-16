@@ -7,12 +7,13 @@ from django.contrib.auth.password_validation import validate_password
 
 
 class UserSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
+    email = serializers.EmailField(required=True)
     student = StudentSerializer(required=True)
     
     class Meta:
         model = User
         fields = ['id', 'username', 'password', 'email', 'student']
-        extra_kwargs = {'password': {'write_only': True, 'validators': [validate_password]}}
         
     def create(self, validated_data):
         # create user
@@ -37,7 +38,7 @@ class UserUpdateSerializer(serializers.ModelSerializer):
     """
     Serializer for user update.
     """
-    student = StudentSerializer()
+    student = StudentSerializer(required=False)  # TODO: partial-update
     
     class Meta:
         model = User
@@ -51,11 +52,12 @@ class UserUpdateSerializer(serializers.ModelSerializer):
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         # instance.email = validated_data.get('email', instance.email)
-        # instance.save()
+        instance.save()
                     
         for attr, value in student.items():
             setattr(instance.student, attr, value)
-
+        instance.student.save()
+        
         return instance
     
 
