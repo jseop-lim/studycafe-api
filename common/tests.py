@@ -181,3 +181,57 @@ class UserUpdateViewTest(APITestCase):
         
         # 새로운 비밀번호로 로그인 성공
         self.assertTrue(self.client.login(username='user', password='newpw1234'))
+        
+        
+    def test_user_detail_permission(self):
+        """
+        user-detail api에서 permission 테스트 (AdminReadOnly | IsOwner)
+        """
+        user1 = self.create_user(username='user1', password='1234')
+        admin = User.objects.create_superuser('admin', 'admin@test.com', '1111')
+
+        # 로그인X -> user1 retrieve 실패
+        response = self.client.get(reverse('common:user-detail', args=[user1.id]))
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+                
+        # user1 -> admin retrieve 실패
+        self.assertTrue(self.client.login(username='user1', password='1234'))
+        response = self.client.get(reverse('common:user-detail', args=[admin.id]))
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.client.logout()
+        
+        # admin -> user1 retrieve 성공
+        self.assertTrue(self.client.login(username='admin', password='1111'))
+        response = self.client.get(reverse('common:user-detail', args=[user1.id]))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        # admin -> user1 update 실패
+        data = {"email": "changed@test.com", "student": {"name": "Park"}}
+        response = self.client.put(reverse('common:user-detail', args=[user1.id]), data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+    
+    
+    def test_password_change_permission(self):
+        """
+        user-password api에서 permission 테스트 (IsOwner)
+        """
+        user1 = self.create_user(username='user1', password='1234')
+        admin = User.objects.create_superuser('admin', 'admin@test.com', '1111')
+        
+        # 로그인X -> user1 password-change 실패
+        data = {"old_password": "1234", "password": "newpw1234", "password2": "newpw1234"}
+        response = self.client.put(reverse('common:user-password', args=[user1.id]), data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        
+        # user1 -> admin password-change 실패
+        self.assertTrue(self.client.login(username='user1', password='1234'))
+        data = {"old_password": "1111", "password": "newpw1111", "password2": "newpw1111"}
+        response = self.client.put(reverse('common:user-password', args=[admin.id]), data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        
+        # admin -> user1 password-change 실패
+        self.assertTrue(self.client.login(username='admin', password='1111'))
+        data = {"old_password": "1234", "password": "newpw1234", "password2": "newpw1234"}
+        response = self.client.put(reverse('common:user-password', args=[user1.id]), data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertFalse(self.client.login(username='user1', password='newpw1234'))
