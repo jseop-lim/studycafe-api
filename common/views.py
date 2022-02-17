@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from common import serializers
-from common.serializers import PasswordChangeSerializer, UserSerializer
-from common.serializers import UserUpdateSerializer
+from common.serializers import UserCreateReadSerializer, UserUpdateSerializer
+from common.serializers import PasswordChangeSerializer
 
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -28,11 +28,12 @@ class UserListView(generics.GenericAPIView,
     List all users, or create a new user.
     """
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = UserCreateReadSerializer
     permission_classes = [
         permissions.AllowAny,
     ]
     
+    # TODO user-detail api의 hyperlink list로 수정
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
 
@@ -45,7 +46,7 @@ class UserDetailView(generics.RetrieveUpdateAPIView):
     Retrieve, update a user.
     """
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = UserCreateReadSerializer
     
     def get_serializer_class(self):
         if self.request.method == 'PUT':

@@ -6,15 +6,19 @@ from rental.serializers import StudentSerializer
 from django.contrib.auth.password_validation import validate_password
 
 
-class UserSerializer(serializers.ModelSerializer):
+class UserCreateReadSerializer(serializers.ModelSerializer):
+    """
+    Serializer for user create, retrieve
+    """
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
+    password2 = serializers.CharField(write_only=True, required=True)
     email = serializers.EmailField(required=True)
     student = StudentSerializer(required=True)
     
     class Meta:
         model = User
-        fields = ['id', 'username', 'password', 'email', 'student']
-        
+        fields = ['id', 'username', 'password', 'password2', 'email', 'student']
+    
     def create(self, validated_data):
         # create user
         user = User.objects.create_user(
@@ -30,9 +34,16 @@ class UserSerializer(serializers.ModelSerializer):
             name = student_data['name'],
         )
         # TODO refactor: https://stackoverflow.com/questions/37240621/django-rest-framework-updating-nested-object
-        
         return user
-    
+
+    def validate(self, attrs):
+        """
+        password, password2 일치 여부 검사
+        """    
+        if attrs['password'] != attrs['password2']:
+            raise serializers.ValidationError({"password2": "Password fields didn't match."})
+        return super().validate(attrs)
+
 
 class UserUpdateSerializer(serializers.ModelSerializer):
     """
@@ -59,7 +70,7 @@ class UserUpdateSerializer(serializers.ModelSerializer):
         instance.student.save()
         
         return instance
-    
+
 
 class PasswordChangeSerializer(serializers.ModelSerializer):
     """
@@ -91,7 +102,7 @@ class PasswordChangeSerializer(serializers.ModelSerializer):
     
     def validate(self, attrs):
         """
-        new_password와 함께 old_password가 입력되었는지 확인
+        password, password2 일치 여부 검사
         """    
         if attrs['password'] != attrs['password2']:
             raise serializers.ValidationError({"password2": "Password fields didn't match."})
