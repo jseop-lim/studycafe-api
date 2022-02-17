@@ -7,14 +7,10 @@ from common.serializers import UserCreateReadSerializer
 from rental.models import Student
 
     
-class UserViewTest(APITestCase):
-    # def setUp(self):
-    #     self.factory = APIRequestFactory()
-    
-    
-    def create_user(self, login=False):
-        user = User.objects.create_user(username='user', password='1234', email="user@example.com")
-        student = Student.objects.create(user=user, name='Kim')
+class UserCreateViewTest(APITestCase):
+    def create_user(self, login=False, username='user', password='1234', email="user@test.com", name='Kim'):
+        user = User.objects.create_user(username, email, password)
+        student = Student.objects.create(user=user, name=name)
         if login:
             self.client.force_authenticate(user)
         
@@ -37,12 +33,12 @@ class UserViewTest(APITestCase):
         user-create api에서 password, email 유효성 검사 테스트
         """
         # password field error
-        data = {"username": "user1", "password": "1", "password2": "1", "email": "user1@example.com", "student": {"name": "Park"}}
+        data = {"username": "user1", "password": "1", "password2": "1", "email": "user1@test.com", "student": {"name": "Park"}}
         response = self.client.post(reverse('common:user-list'), data, format='json')
         self.assertContains(response, "비밀번호가 너무 짧습니다. 최소 8 문자를 포함해야 합니다.", status_code=status.HTTP_400_BAD_REQUEST)
         
         # password non-field error
-        data = {"username": "user1", "password": "qlalfqjsgh1234", "password2": "different", "email": "user1@example.com", "student": {"name": "Park"}}
+        data = {"username": "user1", "password": "qlalfqjsgh1234", "password2": "different", "email": "user1@test.com", "student": {"name": "Park"}}
         response = self.client.post(reverse('common:user-list'), data, format='json')
         self.assertContains(response, "Password fields didn't match.", status_code=status.HTTP_400_BAD_REQUEST)
         
@@ -56,7 +52,7 @@ class UserViewTest(APITestCase):
         """
         UserListView를 이용한 User 생성
         """
-        data = {"username": "user1", "password": "qlalfqjsgh1234", "password2": "qlalfqjsgh1234", "email": "user1@example.com", "student": {"name": "Park"}}
+        data = {"username": "user1", "password": "qlalfqjsgh1234", "password2": "qlalfqjsgh1234", "email": "user1@test.com", "student": {"name": "Park"}}
         response = self.client.post(reverse('common:user-list'), data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         user = User.objects.get(username='user1')
@@ -67,6 +63,16 @@ class UserViewTest(APITestCase):
         response = self.client.get(reverse('common:user-detail', args=[user.id]), format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertContains(response, user)
+
+
+class UserReadViewTest(APITestCase):
+    def create_user(self, login=False, username='user', password='1234', email="user@test.com", name='Kim'):
+        user = User.objects.create_user(username, email, password)
+        student = Student.objects.create(user=user, name=name)
+        if login:
+            self.client.force_authenticate(user)
+        
+        return user
     
     
     def test_user_detail(self):
@@ -84,9 +90,8 @@ class UserViewTest(APITestCase):
         """
         user-list api에서 json response와 모든 user instance 비교
         """
-        user1 = self.create_user()
-        user2 = User.objects.create_user(username='user2', password='5678')
-        student = Student.objects.create(user=user2, name='Lee')
+        self.create_user(username='user1', password='1234', name='Kim')
+        self.create_user(username='user2', password='5678', name='Lee')
         
         response = self.client.get(reverse('common:user-list'), format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -94,6 +99,16 @@ class UserViewTest(APITestCase):
         serializer = UserCreateReadSerializer(User.objects.all(), many=True)
         self.assertEqual(User.objects.count(), 2)
         self.assertJSONEqual(response.content, serializer.data)
+    
+
+class UserUpdateViewTest(APITestCase):
+    def create_user(self, login=False, username='user', password='1234', email="user@test.com", name='Kim'):
+        user = User.objects.create_user(username, email, password)
+        student = Student.objects.create(user=user, name=name)
+        if login:
+            self.client.login(username='user', password='1234')
+        
+        return user
     
     
     def test_user_update(self):
@@ -103,7 +118,7 @@ class UserViewTest(APITestCase):
         user = self.create_user(login=True)
         
         # email, student name 동시에 변경
-        data = {"email": "changed_one@example.com", "student": {"name": "One"}}
+        data = {"email": "changed_one@test.com", "student": {"name": "One"}}
         response = self.client.put(reverse('common:user-detail', args=[user.id]), data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         user = User.objects.get(pk=user.id)
@@ -111,8 +126,8 @@ class UserViewTest(APITestCase):
         self.assertEqual(user.student.name, data['student']['name'])
         
         # email만 변경
-        data = {"email": "changed_two@example.com"}
-        # data = {"email": "changed_two@example.com", "student": {}}  # Fail
+        data = {"email": "changed_two@test.com"}
+        # data = {"email": "changed_two@test.com", "student": {}}  # Fail
         response = self.client.put(reverse('common:user-detail', args=[user.id]), data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         user = User.objects.get(pk=user.id)
@@ -126,7 +141,7 @@ class UserViewTest(APITestCase):
         self.assertEqual(user.student.name, data['student']['name'])
         
     
-    def test_user_password_change_validation(self):
+    def test_password_change_validation(self):
         """
         user-password api에서 password change 유효성 검사 테스트
         """
@@ -148,7 +163,7 @@ class UserViewTest(APITestCase):
         self.assertContains(response, "Password fields didn't match.", status_code=status.HTTP_400_BAD_REQUEST)
     
     
-    def test_user_password_change_api(self):
+    def test_password_change_api(self):
         """
         user-password api에서 password change 작동 테스트
         """
