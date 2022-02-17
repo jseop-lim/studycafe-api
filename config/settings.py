@@ -49,6 +49,7 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     'rental.apps.RentalConfig',
+    'common.apps.CommonConfig',
     
     'django.contrib.admin',
     'django.contrib.auth',
