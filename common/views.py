@@ -1,5 +1,4 @@
 from django.contrib.auth.models import User
-from common import serializers
 from common.serializers import UserCreateReadSerializer, UserUpdateSerializer
 from common.serializers import PasswordChangeSerializer
 
@@ -9,6 +8,7 @@ from rest_framework.reverse import reverse
 from rest_framework import mixins, generics
 
 from rest_framework import permissions
+from common.permissions import IsOwner, AdminReadOnly
 
 
 @api_view(['GET'])
@@ -47,6 +47,9 @@ class UserDetailView(generics.RetrieveUpdateAPIView):
     """
     queryset = User.objects.all()
     serializer_class = UserCreateReadSerializer
+    permission_classes = [
+        AdminReadOnly | IsOwner
+    ]
     
     def get_serializer_class(self):
         if self.request.method == 'PUT':
@@ -63,4 +66,7 @@ class PasswordChangeView(generics.UpdateAPIView):
     """
     queryset = User.objects.all()
     serializer_class = PasswordChangeSerializer
-    
+    permission_classes = [
+        IsOwner,
+    ]
+        
