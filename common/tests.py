@@ -3,7 +3,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase, APIRequestFactory
 from django.contrib.auth.models import User
-from common.serializers import UserSerializer
+from common.serializers import UserCreateReadSerializer
 from rental.models import Student
 
     
@@ -32,11 +32,31 @@ class UserViewTest(APITestCase):
         self.assertEqual(user.student.residual_time, 0)
     
     
+    def test_user_create_validation(self):
+        """
+        user-create api에서 password, email 유효성 검사 테스트
+        """
+        # password field error
+        data = {"username": "user1", "password": "1", "password2": "1", "email": "user1@example.com", "student": {"name": "Park"}}
+        response = self.client.post(reverse('common:user-list'), data, format='json')
+        self.assertContains(response, "비밀번호가 너무 짧습니다. 최소 8 문자를 포함해야 합니다.", status_code=status.HTTP_400_BAD_REQUEST)
+        
+        # password non-field error
+        data = {"username": "user1", "password": "qlalfqjsgh1234", "password2": "different", "email": "user1@example.com", "student": {"name": "Park"}}
+        response = self.client.post(reverse('common:user-list'), data, format='json')
+        self.assertContains(response, "Password fields didn't match.", status_code=status.HTTP_400_BAD_REQUEST)
+        
+        # email field error (required)
+        data = {"username": "user1", "password": "qlalfqjsgh1234", "password2": "qlalfqjsgh1234", "student": {"name": "Park"}}
+        response = self.client.post(reverse('common:user-list'), data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+    
+    
     def test_user_create_api(self):
         """
         UserListView를 이용한 User 생성
         """
-        data = {"username": "user1", "password": "qlalfqjsgh1234", "email": "user1@example.com", "student": {"name": "Park"}}
+        data = {"username": "user1", "password": "qlalfqjsgh1234", "password2": "qlalfqjsgh1234", "email": "user1@example.com", "student": {"name": "Park"}}
         response = self.client.post(reverse('common:user-list'), data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         user = User.objects.get(username='user1')
@@ -71,7 +91,7 @@ class UserViewTest(APITestCase):
         response = self.client.get(reverse('common:user-list'), format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
-        serializer = UserSerializer(User.objects.all(), many=True)
+        serializer = UserCreateReadSerializer(User.objects.all(), many=True)
         self.assertEqual(User.objects.count(), 2)
         self.assertJSONEqual(response.content, serializer.data)
     
