@@ -2,11 +2,11 @@ from rest_framework import serializers
 from rental.models import Student, Ticket, Seat, Purchase, Rent
   
         
-# class TicketSerializer(serializers.ModelSerializer):
+class TicketSerializer(serializers.ModelSerializer):
     
-#     class Meta:
-#         model = Ticket
-#         fields = ['id', 'time', 'storable', 'price']
+    class Meta:
+        model = Ticket
+        fields = ['id', 'time', 'storable', 'price']
 
 
 # class SeatSerializer(serializers.ModelSerializer):
