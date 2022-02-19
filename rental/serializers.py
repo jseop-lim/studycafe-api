@@ -24,6 +24,17 @@ class PurchaseSerializer(serializers.ModelSerializer):
         model = Purchase
         fields = ['id', 'student', 'ticket', 'date']
         
+        
+class PurchaseStudentSerializer(serializers.ModelSerializer):
+    """
+    student 필드를 제외한, read 용도의 serializer
+    """
+    ticket = serializers.StringRelatedField()
+    
+    class Meta:
+        model = Purchase
+        fields = ['id', 'ticket', 'date']
+        
 
 # class RentSerializer(serializers.ModelSerializer):
 #     student = serializers.PrimaryKeyRelatedField(write_only=True)
@@ -37,11 +48,10 @@ class PurchaseSerializer(serializers.ModelSerializer):
 
 class StudentSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField(source='user.id')
-    # purchases = PurchaseSerializer(source='purchases', many=True, read_only=True)
-    # rents = RentSerializer(source='rents', many=True, read_only=True)
+    purchases = PurchaseStudentSerializer(many=True, read_only=True)
+    # rents = RentSerializer(many=True, read_only=True)
     
     class Meta:
         model = Student
-        # fields = ['id', 'name', 'residual_time', 'purchases', 'rents']
-        fields = ['id', 'name', 'residual_time', 'storable']
+        fields = ['id', 'name', 'residual_time', 'storable', 'purchases']
         read_only_fields = ['residual_time', 'storable']
