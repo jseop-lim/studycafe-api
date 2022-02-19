@@ -42,6 +42,14 @@ class Purchase(models.Model):
         ordering = ['date']
 
 
+@receiver(post_save, sender=Purchase)
+def update_student_after_purchase(sender, instance, created, **kwargs):
+    if created:
+        instance.student.residual_time += instance.ticket.time
+        instance.student.storable = instance.ticket.storable
+        instance.student.save()
+
+
 class Seat(models.Model):
     
     class Meta:
