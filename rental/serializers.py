@@ -16,13 +16,13 @@ class TicketSerializer(serializers.ModelSerializer):
 #         fields = ['id']
 
     
-# class PurchaseSerializer(serializers.ModelSerializer):
-#     student = serializers.PrimaryKeyRelatedField(write_only=True)
-#     ticket = serializers.PrimaryKeyRelatedField()
+class PurchaseSerializer(serializers.ModelSerializer):
+    student = serializers.PrimaryKeyRelatedField(read_only=True)
+    ticket = serializers.PrimaryKeyRelatedField(queryset=Ticket.objects.all())
     
-#     class Meta:
-#         model = Purchase
-#         fields = ['id', 'student', 'ticket', 'date']
+    class Meta:
+        model = Purchase
+        fields = ['id', 'student', 'ticket', 'date']
         
 
 # class RentSerializer(serializers.ModelSerializer):
@@ -43,5 +43,5 @@ class StudentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Student
         # fields = ['id', 'name', 'residual_time', 'purchases', 'rents']
-        fields = ['id', 'name', 'residual_time']
-        read_only_fields = ['residual_time']
+        fields = ['id', 'name', 'residual_time', 'storable']
+        read_only_fields = ['residual_time', 'storable']

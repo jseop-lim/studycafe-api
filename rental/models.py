@@ -1,11 +1,16 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+from datetime import timedelta
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
 
 class Student(models.Model):
     user = models.OneToOneField(User, primary_key=True, on_delete=models.CASCADE)
     name = models.CharField(max_length=30)
     residual_time = models.IntegerField(default=0)
+    storable = models.BooleanField(default=False)
     tickets = models.ManyToManyField('Ticket', through='Purchase', related_name='students')
     seats = models.ManyToManyField('Seat', through='Rent', related_name='students')
     
@@ -20,6 +25,12 @@ class Ticket(models.Model):
     
     class Meta:
         ordering = ['storable', 'time']
+    
+    def __str__(self):
+        ret = f'{timedelta(seconds=self.time)} / {self.price:,}원'
+        if self.storable:
+            ret += ' (storable)'
+        return ret
         
 
 class Purchase(models.Model):
