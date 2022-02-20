@@ -1,5 +1,5 @@
-from rental.models import *
-from rental.serializers import *
+from rental.models import Student
+from rental.serializers import StudentSerializer, PurchaseStudentSerializer
 
 from rest_framework import generics
 from rest_framework.response import Response
@@ -22,6 +22,9 @@ class StudentDetailView(generics.RetrieveAPIView):
     
 
 class StudentPurchaseView(generics.ListAPIView):
+    """
+    List all purchases of a student.
+    """
     queryset = Student.objects.all()
     serializer_class = PurchaseStudentSerializer
 
@@ -35,31 +38,3 @@ class StudentPurchaseView(generics.ListAPIView):
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
-
-    
-class TicketListView(generics.ListCreateAPIView):
-    """
-    List all tickets, or create a new ticket.
-    """
-    queryset = Ticket.objects.all()
-    serializer_class = TicketSerializer
-    
-    
-class TicketDetailView(generics.RetrieveUpdateDestroyAPIView):
-    """
-    Retrieve, update or delete a ticket.
-    """
-    queryset = Ticket.objects.all()
-    serializer_class = TicketSerializer
-
-
-class PurchaseListView(generics.ListCreateAPIView):
-    """
-    List all purchases, or create a new purchase.
-    """
-    queryset = Purchase.objects.all()
-    serializer_class = PurchaseSerializer
-    
-    # POST 요청 시에 호출되며, serializer data가 아닌 내부 처리로 필드값 할당
-    def perform_create(self, serializer):
-        serializer.save(student=self.request.user.student)
