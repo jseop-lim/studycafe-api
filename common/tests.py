@@ -12,7 +12,7 @@ class UserCreateViewTest(APITestCase):
         user = User.objects.create_user(username, email, password)
         student = Student.objects.create(user=user, name=name)
         if login:
-            self.client.force_authenticate(user)
+            self.client.login(username=username, password=password)
         
         return user
     
@@ -70,7 +70,7 @@ class UserReadViewTest(APITestCase):
         user = User.objects.create_user(username, email, password)
         student = Student.objects.create(user=user, name=name)
         if login:
-            self.client.force_authenticate(user)
+            self.client.login(username=username, password=password)
         
         return user
     
@@ -106,7 +106,7 @@ class UserUpdateViewTest(APITestCase):
         user = User.objects.create_user(username, email, password)
         student = Student.objects.create(user=user, name=name)
         if login:
-            self.client.login(username='user', password='1234')
+            self.client.login(username=username, password=password)
         
         return user
     
@@ -121,7 +121,7 @@ class UserUpdateViewTest(APITestCase):
         data = {"email": "changed_one@test.com", "student": {"name": "One"}}
         response = self.client.put(reverse('common:user-detail', args=[user.id]), data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        user = User.objects.get(pk=user.id)
+        user.refresh_from_db()
         self.assertEqual(user.email, data['email'])
         self.assertEqual(user.student.name, data['student']['name'])
         
@@ -130,14 +130,14 @@ class UserUpdateViewTest(APITestCase):
         # data = {"email": "changed_two@test.com", "student": {}}  # Fail
         response = self.client.put(reverse('common:user-detail', args=[user.id]), data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        user = User.objects.get(pk=user.id)
+        user.refresh_from_db()
         self.assertEqual(user.email, data['email'])
         
         # student name만 변경
         data = {"student": {"name": "Three"}}
         response = self.client.put(reverse('common:user-detail', args=[user.id]), data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        user = User.objects.get(pk=user.id)
+        user.refresh_from_db()
         self.assertEqual(user.student.name, data['student']['name'])
         
     
