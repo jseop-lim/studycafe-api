@@ -2,6 +2,7 @@ from rental.models import *
 from rental.serializers import *
 
 from rest_framework import generics
+from rest_framework.response import Response
 
 
 class StudentListView(generics.ListAPIView):
@@ -18,6 +19,25 @@ class StudentDetailView(generics.RetrieveAPIView):
     """
     queryset = Student.objects.all()
     serializer_class = StudentSerializer
+    
+
+class StudentPurchaseView(generics.GenericAPIView):
+    queryset = Student.objects.all()
+    serializer_class = PurchaseStudentSerializer
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_object().purchases
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+    
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
 
     
 class TicketListView(generics.ListCreateAPIView):
