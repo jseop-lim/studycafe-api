@@ -21,7 +21,7 @@ class StudentDetailView(generics.RetrieveAPIView):
     serializer_class = StudentSerializer
     
 
-class StudentPurchaseView(generics.GenericAPIView):
+class StudentPurchaseView(generics.ListAPIView):
     queryset = Student.objects.all()
     serializer_class = PurchaseStudentSerializer
 
@@ -35,9 +35,6 @@ class StudentPurchaseView(generics.GenericAPIView):
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
-    
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
 
     
 class TicketListView(generics.ListCreateAPIView):
