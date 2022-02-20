@@ -21,6 +21,7 @@ def api_root(request, format=None):
         'students': reverse('rental:student-list', request=request, format=format),
         'tickets': reverse('rental:ticket-list', request=request, format=format),
         'purchases': reverse('rental:purchase-list', request=request, format=format),
+        'seats': reverse('rental:seat-list', request=request, format=format),
     })
 
 

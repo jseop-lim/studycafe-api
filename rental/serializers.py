@@ -9,11 +9,11 @@ class TicketSerializer(serializers.ModelSerializer):
         fields = ['id', 'time', 'storable', 'price']
 
 
-# class SeatSerializer(serializers.ModelSerializer):
+class SeatSerializer(serializers.ModelSerializer):
     
-#     class Meta:
-#         model = Seat
-#         fields = ['id']
+    class Meta:
+        model = Seat
+        fields = ['id']
 
     
 class PurchaseSerializer(serializers.ModelSerializer):

@@ -12,4 +12,7 @@ urlpatterns = [
     path('tickets', purchase_views.TicketListView.as_view(), name='ticket-list'),
     path('tickets/<int:pk>', purchase_views.TicketDetailView.as_view(), name='ticket-detail'),
     path('purchases', purchase_views.PurchaseListView.as_view(), name='purchase-list'),
+    
+    path('seats', rent_views.SeatListView.as_view(), name='seat-list'),
+    path('seats/<int:pk>', rent_views.SeatDetailView.as_view(), name='seat-detail'),
 ]
