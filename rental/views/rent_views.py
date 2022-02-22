@@ -31,9 +31,7 @@ class RentListView(generics.ListCreateAPIView):
     
     # POST 요청 시에 호출되며, serializer data가 아닌 내부 처리로 필드값 할당
     def perform_create(self, serializer):
-        student = self.request.user.student
-        exp_end_date = timezone.now() + timezone.timedelta(seconds=student.residual_time)
-        serializer.save(student=student, expected_end_date=exp_end_date)
+        serializer.save(student=self.request.user.student)
         
 
 class RentDetailView(generics.RetrieveAPIView):

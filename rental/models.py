@@ -1,8 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
 
-from datetime import timedelta
-from django.db.models.signals import post_save
+from django.utils import timezone
+from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 
 
@@ -27,7 +27,7 @@ class Ticket(models.Model):
         ordering = ['storable', 'time']
     
     def __str__(self):
-        ret = f'{timedelta(seconds=self.time)} / {self.price:,}원'
+        ret = f'{timezone.timedelta(seconds=self.time)} / {self.price:,}원'
         if self.storable:
             ret += ' (storable)'
         return ret
@@ -65,3 +65,9 @@ class Rent(models.Model):
     
     class Meta:
         ordering = ['start_date']
+        
+        
+@receiver(pre_save, sender=Rent)
+def compute_expected_end_date(sender, instance, *args, **kwargs):
+    instance.expected_end_date = timezone.now() + \
+        timezone.timedelta(seconds=instance.student.residual_time)
