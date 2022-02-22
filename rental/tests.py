@@ -4,6 +4,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 from rental.models import *
 from rental.serializers import PurchaseStudentSerializer
+from django.utils import timezone
 
     
 class PurchaseViewTest(APITestCase):
@@ -101,5 +102,56 @@ class StudentViewTest(APITestCase):
         response = self.client.get(reverse('rental:student-purchase', args=[std1.user_id]))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertJSONEqual(response.content, serializer.data)
+
+
+class RentViewTest(APITestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.seat = Seat.objects.create()
+    
+    
+    def create_user(self, login=False, username='user', password='1234', email="user@test.com", name='Kim'):
+        user = User.objects.create_user(username, email, password)
+        student = Student.objects.create(user=user, name=name)
+        if login:
+            self.assertTrue(self.client.login(username=username, password=password))
+        return user
+
+    
+    def test_rent_create_api(self):
+        """
+        rent-list에서 POST 요청으로 rent 생성
+        """
+        student = self.create_user(login=True).student
+        student.residual_time = 61
+        student.save()
         
+        data = {"seat": self.seat.id}
+        response = self.client.post(reverse('rental:rent-list'), data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # rent 필드 일치 확인
+        rent = Rent.objects.get(pk=json.loads(response.content)['id'])
+        self.assertEqual(rent.student, student)
+        self.assertEqual(rent.seat, self.seat)
+        date_diff = rent.expected_end_date - rent.start_date
+        self.assertEqual(date_diff, timezone.timedelta(seconds=student.residual_time))
+        
+    
+    def test_rent_create_shell(self):
+        """
+        Django ORM을 이용한 rent 생성
+        (pre_save signal로 expected_end_date 필드 값 초기화)
+        """
+        student = self.create_user().student
+        student.residual_time = 61
+        student.save()
+        rent = Rent.objects.create(student=student, seat=self.seat)
+        
+        # rent 필드 일치 확인
+        self.assertEqual(rent.student, student)
+        self.assertEqual(rent.seat, self.seat)
+        date_diff = rent.expected_end_date - rent.start_date
+        self.assertEqual(date_diff, timezone.timedelta(seconds=student.residual_time))
         
