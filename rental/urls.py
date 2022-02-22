@@ -15,4 +15,6 @@ urlpatterns = [
     
     path('seats', rent_views.SeatListView.as_view(), name='seat-list'),
     path('seats/<int:pk>', rent_views.SeatDetailView.as_view(), name='seat-detail'),
+    path('rents', rent_views.RentListView.as_view(), name='rent-list'),
+    path('rents/<int:pk>', rent_views.RentDetailView.as_view(), name='rent-detail'),
 ]

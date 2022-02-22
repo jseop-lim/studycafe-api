@@ -1,5 +1,7 @@
-from rental.models import Seat
-from rental.serializers import SeatSerializer
+from django.utils import timezone
+
+from rental.models import Seat, Rent
+from rental.serializers import SeatSerializer, RentSerializer
 
 from rest_framework import generics
 
@@ -18,3 +20,26 @@ class SeatDetailView(generics.RetrieveUpdateDestroyAPIView):
     """
     queryset = Seat.objects.all()
     serializer_class = SeatSerializer
+    
+    
+class RentListView(generics.ListCreateAPIView):
+    """
+    List all rents, or create a new rent.
+    """
+    queryset = Rent.objects.all()
+    serializer_class = RentSerializer
+    
+    # POST 요청 시에 호출되며, serializer data가 아닌 내부 처리로 필드값 할당
+    def perform_create(self, serializer):
+        student = self.request.user.student
+        exp_end_date = timezone.now() + timezone.timedelta(seconds=student.residual_time)
+        serializer.save(student=student, expected_end_date=exp_end_date)
+        
+
+class RentDetailView(generics.RetrieveAPIView):
+    """
+    Retrieve a rent.
+    """
+    queryset = Rent.objects.all()
+    serializer_class = RentSerializer
+    

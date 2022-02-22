@@ -60,7 +60,7 @@ class Rent(models.Model):
     student = models.ForeignKey(Student, related_name='rents', on_delete=models.CASCADE)
     seat = models.ForeignKey(Seat, related_name='rents', on_delete=models.CASCADE)
     start_date = models.DateTimeField(auto_now_add=True)
-    real_end_date = models.DateTimeField(blank=True)
+    real_end_date = models.DateTimeField(null=True, blank=True)
     expected_end_date = models.DateTimeField()  # blank=True?
     
     class Meta:
