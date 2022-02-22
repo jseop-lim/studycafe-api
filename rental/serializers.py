@@ -46,6 +46,17 @@ class RentSerializer(serializers.ModelSerializer):
         read_only_fields = ['start_date', 'expected_end_date']
 
 
+class RentStudentSerializer(serializers.ModelSerializer):
+    """
+    student 필드를 제외한, read 용도의 rent serializer
+    """
+    seat = serializers.PrimaryKeyRelatedField(read_only=True)
+    
+    class Meta:
+        model = Rent
+        fields = ['id', 'seat', 'start_date', 'real_end_date']
+
+
 class StudentSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField(source='user.id')
     purchases = PurchaseStudentSerializer(many=True, read_only=True)
