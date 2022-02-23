@@ -15,7 +15,8 @@ Django REST framework를 이용하여 스터디카페 시스템의 API를 제작
 - **RESTful**에 대한 이해 - 데이터베이스를 RESTful하게 나타내는 URI 결정하기
 - **MVT 패턴**에 대한 이해 - 주어진 데이터베이스를 사용자 요구에 맞게 조회하기 위한 View(Control)을 정의하기
 - Django 및 DRF 연습
-- 
+
+
 
 ## App 구조
 
