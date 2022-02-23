@@ -35,7 +35,8 @@ Django REST framework를 이용하여 스터디카페 시스템의 API를 제작
 - django REST framework 3.13.1
 - mysqlclient 2.1.0
 - celery 5.2.3
-- 
+
+
 
 ## 사용법
 
