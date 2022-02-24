@@ -42,8 +42,8 @@ class RentSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Rent
-        fields = ['id', 'student', 'seat', 'start_date', 'expected_end_date']
-        read_only_fields = ['start_date', 'expected_end_date']
+        fields = ['id', 'student', 'seat', 'start_date', 'real_end_date', 'expected_end_date']
+        read_only_fields = ['start_date', 'real_end_date', 'expected_end_date']
 
 
 class RentStudentSerializer(serializers.ModelSerializer):
