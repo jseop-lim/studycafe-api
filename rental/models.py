@@ -40,7 +40,7 @@ class Purchase(models.Model):
     date = models.DateTimeField(auto_now_add=True)
     
     class Meta:
-        ordering = ['date']
+        ordering = ['-date']
 
 
 @receiver(post_save, sender=Purchase)
@@ -65,7 +65,7 @@ class Rent(models.Model):
     expected_end_date = models.DateTimeField()
     
     class Meta:
-        ordering = ['start_date']
+        ordering = ['-start_date']
     
     def save(self, *args, **kwargs):
         created = self._state.adding
