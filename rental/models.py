@@ -85,3 +85,5 @@ def update_real_end_date(pk):
     if not rent.real_end_date:
         rent.real_end_date = rent.expected_end_date
         rent.save()
+        rent.student.storable = False
+        rent.student.save()
