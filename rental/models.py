@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
+from celery import shared_task
 
 
 class Student(models.Model):
@@ -61,13 +62,26 @@ class Rent(models.Model):
     seat = models.ForeignKey(Seat, related_name='rents', on_delete=models.CASCADE)
     start_date = models.DateTimeField(auto_now_add=True)
     real_end_date = models.DateTimeField(null=True, blank=True)
-    expected_end_date = models.DateTimeField()  # blank=True?
+    expected_end_date = models.DateTimeField()
     
     class Meta:
         ordering = ['start_date']
+    
+    def save(self, *args, **kwargs):
+        created = self._state.adding
+        if created:
+            self.expected_end_date = timezone.now() + \
+                timezone.timedelta(seconds=self.student.residual_time)
+
+        super().save(*args, **kwargs)
         
-        
-@receiver(pre_save, sender=Rent)
-def compute_expected_end_date(sender, instance, *args, **kwargs):
-    instance.expected_end_date = timezone.now() + \
-        timezone.timedelta(seconds=instance.student.residual_time)
+        if created:
+            update_real_end_date.apply_async(args=[self.pk], eta=self.expected_end_date)
+
+
+@shared_task
+def update_real_end_date(pk):
+    rent = Rent.objects.get(pk=pk)
+    if not rent.real_end_date:
+        rent.real_end_date = rent.expected_end_date
+        rent.save()
