@@ -83,7 +83,18 @@ class Rent(models.Model):
 def update_real_end_date(pk):
     rent = Rent.objects.get(pk=pk)
     if not rent.real_end_date:
-        rent.real_end_date = rent.expected_end_date
-        rent.save()
         rent.student.storable = False
         rent.student.save()
+        rent.real_end_date = rent.expected_end_date
+        rent.save()
+
+
+@receiver(post_save, sender=Rent)
+def update_student_after_rent(sender, instance, created, **kwargs):
+    if not created:
+        residual_time = 0
+        if instance.student.storable:
+            residual_time = (instance.expected_end_date - instance.real_end_date).total_seconds()
+
+        instance.student.residual_time = residual_time
+        instance.student.save()
