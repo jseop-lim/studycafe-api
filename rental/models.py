@@ -1,9 +1,10 @@
 from django.db import models
 from django.contrib.auth.models import User
 
-from datetime import timedelta
-from django.db.models.signals import post_save
+from django.utils import timezone
+from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
+from celery import shared_task
 
 
 class Student(models.Model):
@@ -27,7 +28,7 @@ class Ticket(models.Model):
         ordering = ['storable', 'time']
     
     def __str__(self):
-        ret = f'{timedelta(seconds=self.time)} / {self.price:,}원'
+        ret = f'{timezone.timedelta(seconds=self.time)} / {self.price:,}원'
         if self.storable:
             ret += ' (storable)'
         return ret
@@ -39,7 +40,7 @@ class Purchase(models.Model):
     date = models.DateTimeField(auto_now_add=True)
     
     class Meta:
-        ordering = ['date']
+        ordering = ['-date']
 
 
 @receiver(post_save, sender=Purchase)
@@ -60,8 +61,40 @@ class Rent(models.Model):
     student = models.ForeignKey(Student, related_name='rents', on_delete=models.CASCADE)
     seat = models.ForeignKey(Seat, related_name='rents', on_delete=models.CASCADE)
     start_date = models.DateTimeField(auto_now_add=True)
-    real_end_date = models.DateTimeField(blank=True)
-    expected_end_date = models.DateTimeField()  # blank=True?
+    real_end_date = models.DateTimeField(null=True, blank=True)
+    expected_end_date = models.DateTimeField()
     
     class Meta:
-        ordering = ['start_date']
+        ordering = ['-start_date']
+    
+    def save(self, *args, **kwargs):
+        created = self._state.adding
+        if created:
+            self.expected_end_date = timezone.now() + \
+                timezone.timedelta(seconds=self.student.residual_time)
+
+        super().save(*args, **kwargs)
+        
+        if created:
+            update_real_end_date.apply_async(args=[self.pk], eta=self.expected_end_date)
+
+
+@shared_task
+def update_real_end_date(pk):
+    rent = Rent.objects.get(pk=pk)
+    if not rent.real_end_date:
+        rent.student.storable = False
+        rent.student.save()
+        rent.real_end_date = rent.expected_end_date
+        rent.save()
+
+
+@receiver(post_save, sender=Rent)
+def update_student_after_rent(sender, instance, created, **kwargs):
+    if not created:
+        residual_time = 0
+        if instance.student.storable:
+            residual_time = (instance.expected_end_date - instance.real_end_date).total_seconds()
+
+        instance.student.residual_time = residual_time
+        instance.student.save()
