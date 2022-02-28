@@ -3,8 +3,11 @@ from rental.serializers import SeatSerializer, RentSerializer
 
 from django.utils import timezone
 from rest_framework.response import Response
+from rest_framework import status
 from rest_framework import generics
 from rest_framework.exceptions import ValidationError
+
+from celery import shared_task
 
 
 class SeatListView(generics.ListCreateAPIView):
@@ -32,7 +35,10 @@ class RentListView(generics.ListCreateAPIView):
     
     # POST 요청 시에 호출되며, serializer data가 아닌 내부 처리로 필드값 할당
     def perform_create(self, serializer):
-        serializer.save(student=self.request.user.student)
+        student = self.request.user.student
+        exp_end_date = timezone.now() + timezone.timedelta(seconds=student.residual_time)
+        rent = serializer.save(student=student, expected_end_date=exp_end_date)
+        update_real_end_date.apply_async(args=[rent.pk], eta=rent.expected_end_date)
     
     def create(self, request, *args, **kwargs):
         """
@@ -54,7 +60,24 @@ class RentDetailView(generics.RetrieveUpdateAPIView):
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
         instance.real_end_date = timezone.now()
+            
+        if instance.student.storable:
+            instance.student.residual_time = \
+                (instance.expected_end_date - instance.real_end_date).total_seconds()
+        else:
+            instance.student.residual_time = 0
+            
+        instance.student.save()
         instance.save()
-
         return Response("The rental has ended.")
-    
+
+
+@shared_task
+def update_real_end_date(pk):
+    rent = Rent.objects.get(pk=pk)
+    if not rent.real_end_date:
+        rent.real_end_date = rent.expected_end_date        
+        rent.student.residual_time = 0
+        rent.student.storable = False
+        rent.student.save()
+        rent.save()

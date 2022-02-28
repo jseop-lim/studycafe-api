@@ -43,12 +43,12 @@ class Purchase(models.Model):
         ordering = ['-date']
 
 
-@receiver(post_save, sender=Purchase)
-def update_student_after_purchase(sender, instance, created, **kwargs):
-    if created:
-        instance.student.residual_time += instance.ticket.time
-        instance.student.storable = instance.ticket.storable
-        instance.student.save()
+# @receiver(post_save, sender=Purchase)
+# def update_student_after_purchase(sender, instance, created, **kwargs):
+#     if created:
+#         instance.student.residual_time += instance.ticket.time
+#         instance.student.storable = instance.ticket.storable
+#         instance.student.save()
 
 
 class Seat(models.Model):
@@ -67,34 +67,34 @@ class Rent(models.Model):
     class Meta:
         ordering = ['-start_date']
     
-    def save(self, *args, **kwargs):
-        created = self._state.adding
-        if created:
-            self.expected_end_date = timezone.now() + \
-                timezone.timedelta(seconds=self.student.residual_time)
+    # def save(self, *args, **kwargs):
+    #     created = self._state.adding
+    #     if created:
+    #         self.expected_end_date = timezone.now() + \
+    #             timezone.timedelta(seconds=self.student.residual_time)
 
-        super().save(*args, **kwargs)
+    #     super().save(*args, **kwargs)
         
-        if created:
-            update_real_end_date.apply_async(args=[self.pk], eta=self.expected_end_date)
+    #     if created:
+    #         update_real_end_date.apply_async(args=[self.pk], eta=self.expected_end_date)
 
 
-@shared_task
-def update_real_end_date(pk):
-    rent = Rent.objects.get(pk=pk)
-    if not rent.real_end_date:
-        rent.student.storable = False
-        rent.student.save()
-        rent.real_end_date = rent.expected_end_date
-        rent.save()
+# @shared_task
+# def update_real_end_date(pk):
+#     rent = Rent.objects.get(pk=pk)
+#     if not rent.real_end_date:
+#         rent.student.storable = False
+#         rent.student.save()
+#         rent.real_end_date = rent.expected_end_date
+#         rent.save()
 
 
-@receiver(post_save, sender=Rent)
-def update_student_after_rent(sender, instance, created, **kwargs):
-    if not created:
-        residual_time = 0
-        if instance.student.storable:
-            residual_time = (instance.expected_end_date - instance.real_end_date).total_seconds()
+# @receiver(post_save, sender=Rent)
+# def update_student_after_rent(sender, instance, created, **kwargs):
+#     if not created:
+#         residual_time = 0
+#         if instance.student.storable:
+#             residual_time = (instance.expected_end_date - instance.real_end_date).total_seconds()
 
-        instance.student.residual_time = residual_time
-        instance.student.save()
+#         instance.student.residual_time = residual_time
+#         instance.student.save()

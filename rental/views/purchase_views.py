@@ -29,4 +29,7 @@ class PurchaseListView(generics.ListCreateAPIView):
     
     # POST 요청 시에 호출되며, serializer data가 아닌 내부 처리로 필드값 할당
     def perform_create(self, serializer):
-        serializer.save(student=self.request.user.student)
+        purchase = serializer.save(student=self.request.user.student)
+        purchase.student.residual_time += purchase.ticket.time
+        purchase.student.storable = purchase.ticket.storable
+        purchase.student.save()
