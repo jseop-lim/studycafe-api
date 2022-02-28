@@ -1,6 +1,8 @@
 from rental.models import Seat, Rent
 from rental.serializers import SeatSerializer, RentSerializer
 
+from django.utils import timezone
+from rest_framework.response import Response
 from rest_framework import generics
 from rest_framework.exceptions import ValidationError
 
@@ -42,10 +44,17 @@ class RentListView(generics.ListCreateAPIView):
             return super().create(request, *args, **kwargs)
         
 
-class RentDetailView(generics.RetrieveAPIView):
+class RentDetailView(generics.RetrieveUpdateAPIView):
     """
     Retrieve a rent.
     """
     queryset = Rent.objects.all()
     serializer_class = RentSerializer
+    
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.real_end_date = timezone.now()
+        instance.save()
+
+        return Response("The rental has ended.")
     
