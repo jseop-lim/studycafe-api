@@ -1,6 +1,7 @@
 import json
 from django.urls import reverse
 from rest_framework import status
+from django.test import tag
 from rest_framework.test import APITestCase, APISimpleTestCase
 from rental.models import *
 from rental.serializers import PurchaseStudentSerializer
@@ -51,6 +52,7 @@ class PurchaseViewTest(APITestCase):
         self.assertTrue(student.storable == ticket.storable == True)  # False -> True로 바뀜
         
     
+    @tag('shell')
     def test_purchase_create_shell(self):
         """
         Django ORM을 이용한 purchase 생성
@@ -147,10 +149,11 @@ class RentViewTest(APITestCase):
         rent = Rent.objects.get(pk=json.loads(response.content)['id'])
         self.assertEqual(rent.student, student)
         self.assertEqual(rent.seat, self.seat)
-        date_diff = rent.expected_end_date - rent.start_date
-        self.assertEqual(date_diff, timezone.timedelta(seconds=student.residual_time))
+        date_diff = (rent.expected_end_date - rent.start_date).total_seconds()
+        self.assertEqual(round(date_diff, 2), student.residual_time)
         
     
+    @tag('shell')
     def test_rent_create_shell(self):
         """
         Django ORM을 이용한 rent 생성
@@ -164,8 +167,8 @@ class RentViewTest(APITestCase):
         # rent 필드 일치 확인
         self.assertEqual(rent.student, student)
         self.assertEqual(rent.seat, self.seat)
-        date_diff = rent.expected_end_date - rent.start_date
-        self.assertEqual(date_diff, timezone.timedelta(seconds=student.residual_time))
+        date_diff = (rent.expected_end_date - rent.start_date).total_seconds()
+        self.assertEqual(round(date_diff, 2), student.residual_time)
     
     
     def test_rent_end_manual_non_store(self):
@@ -256,7 +259,7 @@ class CeleryTest(APISimpleTestCase):
         data = {"seat": seat.id}
         response = self.client.post(reverse('rental:rent-list'), data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        time.sleep(2.1)
+        time.sleep(3)
         
         # 자동 대여 마감
         student.refresh_from_db()
