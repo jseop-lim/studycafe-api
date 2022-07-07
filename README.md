@@ -43,7 +43,7 @@ Django REST framework를 이용하여 스터디카페 시스템의 API를 제작
 
 ## 사용법
 
-[studycafe_design.md](https://github.com/jseop-lim/studycafe-api/blob/main/docs/studycafe_design.md)에 API endpoint가 나열되어 있다.
+[docs/README.md](https://github.com/jseop-lim/studycafe-api/tree/main/docs)에 API endpoint가 나열되어 있다.
 
 스터디카페 사용자의 프로세스는 [velog](https://velog.io/@azzurri21/MySQL-%EC%8A%A4%ED%84%B0%EB%94%94%EC%B9%B4%ED%8E%98-%EA%B4%80%EB%A6%AC%EC%8B%9C%EC%8A%A4%ED%85%9C-%EA%B0%9C%EB%B0%9C-2-%EC%8B%9C%EC%8A%A4%ED%85%9C-%EB%B6%84%EC%84%9D#process)에 정리되어 있다.
 
