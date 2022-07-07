@@ -1,3 +1,5 @@
+# Studycafe API Endpoints
+
 ## Student
 
 | View-name                   | Method | URL                                            | Permission  | 비고                     |
