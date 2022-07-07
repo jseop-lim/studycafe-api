@@ -47,7 +47,7 @@ Django REST framework를 이용하여 스터디카페 시스템의 API를 제작
 
 스터디카페 사용자의 프로세스는 [velog](https://velog.io/@azzurri21/MySQL-%EC%8A%A4%ED%84%B0%EB%94%94%EC%B9%B4%ED%8E%98-%EA%B4%80%EB%A6%AC%EC%8B%9C%EC%8A%A4%ED%85%9C-%EA%B0%9C%EB%B0%9C-2-%EC%8B%9C%EC%8A%A4%ED%85%9C-%EB%B6%84%EC%84%9D#process)에 정리되어 있다.
 
-celery + rabbitMQ 환경 구축 및 실행은 [notion](https://www.notion.so/Celery-with-Django-d389da3bf2be4c31bc73b3192c346fff)을 참고하라.
+celery + rabbitMQ 환경 구축 및 실행은 [notion](https://jseoplim.notion.site/Celery-with-Django-122c3bcd38ef4b40940569da5ed24b98)을 참고하라.
 
 
 
